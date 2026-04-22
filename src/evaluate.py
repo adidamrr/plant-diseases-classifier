@@ -6,7 +6,7 @@ import seaborn as sns
 import torch
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
 
-from src.train import run_resnet18
+from src.train import run_training
 from src.utils import device
 
 
@@ -66,11 +66,8 @@ def plot_confusion_matrix(evaluate_result, class_names):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["resnet18"], default="resnet18")
-    parser.parse_args()
-
-    model, _, train_set, val_set, test_set, train_loader, val_loader, test_loader = run_resnet18()
+    argparse.ArgumentParser().parse_args()
+    model, _, train_set, val_set, test_set, train_loader, val_loader, test_loader = run_training()
     evaluate_result = evaluate(model, test_loader, device, val_set.classes)
     print(evaluate_result["classification_report"])
     plot_confusion_matrix(evaluate_result, val_set.classes)

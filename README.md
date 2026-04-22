@@ -34,6 +34,10 @@
 - Текущий рабочий вариант основан на `ResNet18` с fine-tuning последних блоков `layer4` и `fc`.
 - Сервис ожидает артефакты `artifacts/best_model.pth` и `artifacts/idx_to_class.json`.
 
+## Архитектура
+
+В проекте используется одна модель: `ResNet18` с fine-tuning последних двух частей `layer4` и `fc`.
+
 ## Установка
 
 ```bash

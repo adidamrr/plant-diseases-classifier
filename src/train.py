@@ -112,7 +112,7 @@ def save_training_artifacts(model, classes):
     print(f"Saved idx_to_class mapping to {IDX_TO_CLASS_PATH}")
 
 
-def run_resnet18():
+def run_training():
     train_set, val_set, test_set, train_loader, val_loader, test_loader = build_resnet_dataloaders()
 
     model = build_resnet18(38).to(device)
@@ -135,11 +135,8 @@ def run_resnet18():
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["resnet18"], default="resnet18")
-    parser.parse_args()
-
-    _, result, *_ = run_resnet18()
+    argparse.ArgumentParser().parse_args()
+    _, result, *_ = run_training()
     train_plot(result)
 
 
