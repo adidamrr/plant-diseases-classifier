@@ -42,12 +42,12 @@ def request_prediction(uploaded_file):
     return response.json(), image_bytes
 
 
-st.set_page_config(page_title="Plant Disease Classifier", layout="wide")
-st.title("Plant Disease Classifier")
-st.write("Upload a plant leaf image to get the top-3 predicted classes and probabilities.")
+st.set_page_config(page_title="Классификатор болезней растений", layout="wide")
+st.title("Классификатор болезней растений")
+st.write("Загрузите изображение листа, чтобы получить топ-3 предсказания модели и вероятности.")
 
 uploaded_file = st.file_uploader(
-    "Upload image",
+    "Загрузите изображение",
     type=["jpg", "jpeg", "png"],
 )
 
@@ -56,7 +56,7 @@ if uploaded_file is not None:
     left_col, right_col = st.columns([1, 1])
 
     with left_col:
-        st.image(image, caption="Uploaded image", use_container_width=True)
+        st.image(image, caption="Загруженное изображение", width=360)
 
     with right_col:
         try:
@@ -64,13 +64,13 @@ if uploaded_file is not None:
             top_predictions = prediction_response["top_3"]
             best_prediction = top_predictions[0]
 
-            st.subheader("Prediction")
+            st.subheader("Результат")
             st.markdown(
-                f"**Predicted disease:** {format_class_name(prediction_response['predicted_class'])}"
+                f"**Предсказанное заболевание:** {format_class_name(prediction_response['predicted_class'])}"
             )
-            st.markdown(f"**Confidence:** {prediction_response['confidence'] * 100:.1f}%")
+            st.markdown(f"**Уверенность модели:** {prediction_response['confidence'] * 100:.1f}%")
 
-            st.subheader("Top-3 predictions")
+            st.subheader("Топ-3 предсказания")
             for item in top_predictions:
                 st.write(
                     f"{format_class_name(item['class_name'])} - {item['probability'] * 100:.1f}%"
@@ -79,6 +79,6 @@ if uploaded_file is not None:
             st.pyplot(build_bar_chart(top_predictions))
         except requests.HTTPError as error:
             detail = error.response.text if error.response is not None else str(error)
-            st.error(f"API error: {detail}")
+            st.error(f"Ошибка API: {detail}")
         except requests.RequestException:
-            st.error("Could not connect to the API. Start FastAPI first with uvicorn app.api:app --reload.")
+            st.error("Не удалось подключиться к API. Сначала запустите FastAPI через uvicorn app.api:app --reload.")
