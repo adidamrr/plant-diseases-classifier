@@ -4,21 +4,18 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
-from src.dataset import build_resnet_dataloaders
+from src.dataset import build_basic_dataloaders, build_resnet_dataloaders
 from src.model import (
+    MyNN,
     build_resnet18,
     freeze_all_layers,
+    unfreeze_fc_only,
     unfreeze_last_block_and_fc,
+    weith_init,
 )
-from src.utils import (
-    IDX_TO_CLASS_PATH,
-    MODEL_PATH,
-    device,
-    get_dataset_classes,
-    save_idx_to_class,
-    save_model_state,
-)
+from src.utils import IDX_TO_CLASS_PATH, MODEL_PATH, device, save_idx_to_class, save_model_state
 
 
 def train_epoch(model, opt, lossfunc, train_loader, current_device):
@@ -92,6 +89,24 @@ def train(epoch_num, model, opt, lossfunc, train_loader, val_loader, current_dev
     }
 
 
+def train_plot(result):
+    fig, axs = plt.subplots(1, 2, figsize=(12, 4))
+
+    axs[0].plot(result["train_loss"], label="train")
+    axs[0].plot(result["val_loss"], label="val")
+    axs[0].set_xlabel("epoch")
+    axs[0].set_ylabel("loss")
+    axs[0].legend()
+
+    axs[1].plot(result["train_metric"], label="train")
+    axs[1].plot(result["val_metric"], label="val")
+    axs[1].set_xlabel("epoch")
+    axs[1].set_ylabel("accuracy")
+    axs[1].legend()
+
+    plt.show()
+
+
 def save_training_artifacts(model, classes):
     idx_to_class = {idx: class_name for idx, class_name in enumerate(classes)}
     save_model_state(model)
@@ -100,33 +115,65 @@ def save_training_artifacts(model, classes):
     print(f"Saved idx_to_class mapping to {IDX_TO_CLASS_PATH}")
 
 
+def run_mynn():
+    num_epochs = 5
+
+    train_set, val_set, test_set, train_loader, val_loader, test_loader = build_basic_dataloaders()
+
+    model = MyNN(38, 3).to(device)
+    weith_init(model)
+    lossfunc = nn.CrossEntropyLoss()
+    opt = torch.optim.AdamW(model.parameters())
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, num_epochs)
+
+    result = train(num_epochs, model, opt, lossfunc, train_loader, val_loader, device, scheduler)
+    save_training_artifacts(model, val_set.classes)
+    return model, result, train_set, val_set, test_set, train_loader, val_loader, test_loader
+
+
 def run_resnet18():
     train_set, val_set, test_set, train_loader, val_loader, test_loader = build_resnet_dataloaders()
 
     model = build_resnet18(38).to(device)
 
     freeze_all_layers(model)
-    unfreeze_last_block_and_fc(model)
+    unfreeze_fc_only(model)
 
     lossfunc = nn.CrossEntropyLoss()
+    opt = optim.AdamW(model.fc.parameters(), lr=1e-3)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=5)
+
+    result_stage1 = train(5, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
+
+    freeze_all_layers(model)
+    unfreeze_last_block_and_fc(model)
+
     opt = optim.AdamW(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=1e-4,
         weight_decay=1e-4,
     )
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=1)
+    scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=5)
 
-    result = train(1, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
-    save_training_artifacts(model, get_dataset_classes(val_set))
+    result_stage2 = train(5, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
+    save_training_artifacts(model, val_set.classes)
 
-    return model, result, train_set, val_set, test_set, train_loader, val_loader, test_loader
+    return model, result_stage1, result_stage2, train_set, val_set, test_set, train_loader, val_loader, test_loader
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["resnet18"], default="resnet18")
-    parser.parse_args()
-    run_resnet18()
+    parser.add_argument("--model", choices=["mynn", "resnet18"], default="resnet18")
+    args = parser.parse_args()
+
+    if args.model == "mynn":
+        _, result, *_ = run_mynn()
+        train_plot(result)
+        return
+
+    _, result_stage1, result_stage2, *_ = run_resnet18()
+    train_plot(result_stage1)
+    train_plot(result_stage2)
 
 
 if __name__ == "__main__":
