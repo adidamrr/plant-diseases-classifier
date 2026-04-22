@@ -1,9 +1,13 @@
 import torch
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, Subset, random_split
 from torchvision import datasets
 from torchvision import transforms as T
 
 from src.utils import TRAIN_PATH, VALID_PATH
+
+FAST_TRAIN_SAMPLES = 1000
+FAST_VAL_SAMPLES = 200
+FAST_TEST_SAMPLES = 200
 
 tfms_resnet_train = T.Compose([
     T.Resize((224, 224)),
@@ -32,6 +36,14 @@ def build_resnet_dataloaders():
         [train_size, test_size],
         generator=torch.Generator().manual_seed(42),
     )
+
+    train_limit = min(FAST_TRAIN_SAMPLES, len(train_set))
+    val_limit = min(FAST_VAL_SAMPLES, len(val_set))
+    test_limit = min(FAST_TEST_SAMPLES, len(test_set))
+
+    train_set = Subset(train_set, range(train_limit))
+    val_set = Subset(val_set, range(val_limit))
+    test_set = Subset(test_set, range(test_limit))
 
     train_loader = DataLoader(train_set, batch_size=16, shuffle=True, num_workers=0)
     val_loader = DataLoader(val_set, batch_size=64, shuffle=False, num_workers=0)
