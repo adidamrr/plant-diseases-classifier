@@ -1,5 +1,8 @@
+import torch
 import torch.nn as nn
 from torchvision import models
+
+from src.utils import MODEL_PATH, device
 
 
 class MyNN(nn.Module):
@@ -48,8 +51,8 @@ def weith_init(model):
             nn.init.kaiming_normal_(m.weight, nonlinearity="relu")
 
 
-def build_resnet18(num_classes=38):
-    model = models.resnet18(weights=models.ResNet18_Weights.DEFAULT)
+def build_resnet18(num_classes=38, weights=models.ResNet18_Weights.DEFAULT):
+    model = models.resnet18(weights=weights)
     model.fc = nn.Linear(model.fc.in_features, num_classes)
     return model
 
@@ -70,3 +73,13 @@ def unfreeze_last_block_and_fc(model):
     for param in model.fc.parameters():
         param.requires_grad = True
 
+
+def load_resnet18_for_inference(model_path=MODEL_PATH, num_classes=38, current_device=device):
+    artifact_loaded = model_path.exists() and model_path.stat().st_size > 0
+    model = build_resnet18(num_classes, weights=None)
+    if artifact_loaded:
+        state_dict = torch.load(model_path, map_location=current_device)
+        model.load_state_dict(state_dict)
+    model = model.to(current_device)
+    model.eval()
+    return model, artifact_loaded

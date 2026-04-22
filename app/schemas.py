@@ -1,16 +1,12 @@
 from pydantic import BaseModel
 
 
-class PredictionRequest(BaseModel):
-    image_path: str
-    top_k: int = 3
-
-
-class PredictionItem(BaseModel):
-    proba: float
+class TopPrediction(BaseModel):
     class_name: str
+    probability: float
 
 
 class PredictionResponse(BaseModel):
-    predictions: list[PredictionItem]
-
+    predicted_class: str
+    confidence: float
+    top_3: list[TopPrediction]
