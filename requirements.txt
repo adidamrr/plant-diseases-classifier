@@ -9,4 +9,6 @@ kagglehub
 fastapi
 uvicorn
 pydantic
-
+python-multipart
+requests
+streamlit

@@ -1,6 +1,6 @@
 # Plant Disease Classifier
 
-Проект перенесен из ноутбука в модульную структуру без изменения основной логики экспериментов.
+Проект перенесен из ноутбука в модульную структуру без изменения основной логики экспериментов. Поверх этого добавлены FastAPI-сервис и Streamlit UI для локального инференса.
 
 ## Структура
 
@@ -8,7 +8,8 @@
 .
 ├── app/
 │   ├── api.py
-│   └── schemas.py
+│   ├── schemas.py
+│   └── streamlit_app.py
 ├── src/
 │   ├── dataset.py
 │   ├── evaluate.py
@@ -29,9 +30,10 @@
 
 - `notebooks/experiments.ipynb` содержит исходные эксперименты.
 - `src/` содержит перенос кода обучения, оценки, предсказания и подготовки данных.
-- `app/` содержит минимальный FastAPI-слой для инференса.
+- `app/` содержит FastAPI-сервис и Streamlit UI для инференса.
 - В ноутбуке сохранены обе ветки экспериментов: `MyNN` и `ResNet18`.
 - Текущий рабочий вариант основан на `ResNet18` с fine-tuning последних блоков `layer4` и `fc`.
+- Сервис ожидает артефакты `artifacts/best_model.pth` и `artifacts/idx_to_class.json`.
 
 ## Установка
 
@@ -63,3 +65,31 @@ python -m src.predict --image /path/to/image.jpg
 uvicorn app.api:app --reload
 ```
 
+## Streamlit UI
+
+```bash
+streamlit run app/streamlit_app.py
+```
+
+## Локальный запуск
+
+1. Создайте и активируйте виртуальное окружение.
+2. Установите зависимости из `requirements.txt`.
+3. Поместите обученные веса в `artifacts/best_model.pth`.
+4. Убедитесь, что `artifacts/idx_to_class.json` содержит mapping индекса в класс.
+5. Запустите API:
+
+```bash
+uvicorn app.api:app --reload
+```
+
+6. Откройте проверку:
+
+- `GET /health`
+- `POST /predict`
+
+7. Запустите UI:
+
+```bash
+streamlit run app/streamlit_app.py
+```
