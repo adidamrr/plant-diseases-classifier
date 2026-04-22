@@ -1,8 +1,5 @@
 import argparse
 
-import matplotlib.pyplot as plt
-import numpy as np
-import seaborn as sns
 import torch
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
 
@@ -38,39 +35,11 @@ def evaluate(model, dataloader, current_device, class_names=None):
     }
 
 
-def plot_confusion_matrix(evaluate_result, class_names):
-    cm = evaluate_result["confusion_matrix"].astype(float)
-    np.fill_diagonal(cm, 0)
-    row_sums = cm.sum(axis=1, keepdims=True)
-    row_sums[row_sums == 0] = 1
-    cm_norm = cm / row_sums
-
-    short_names = [name.replace("___", " | ").replace("_", " ") for name in class_names]
-
-    plt.figure(figsize=(12, 12))
-    sns.heatmap(
-        cm_norm,
-        cmap="Blues",
-        xticklabels=short_names,
-        yticklabels=short_names,
-        square=True,
-        cbar=True,
-    )
-    plt.xlabel("Predicted class")
-    plt.ylabel("True class")
-    plt.title("Normalized confusion matrix")
-    plt.xticks(rotation=90, fontsize=8)
-    plt.yticks(rotation=0, fontsize=8)
-    plt.tight_layout()
-    plt.show()
-
-
 def main():
     argparse.ArgumentParser().parse_args()
     model, _, train_set, val_set, test_set, train_loader, val_loader, test_loader = run_training()
     evaluate_result = evaluate(model, test_loader, device, val_set.classes)
     print(evaluate_result["classification_report"])
-    plot_confusion_matrix(evaluate_result, val_set.classes)
 
 
 if __name__ == "__main__":

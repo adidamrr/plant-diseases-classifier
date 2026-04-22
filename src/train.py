@@ -4,7 +4,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
 
 from src.dataset import build_resnet_dataloaders
 from src.model import (
@@ -86,24 +85,6 @@ def train(epoch_num, model, opt, lossfunc, train_loader, val_loader, current_dev
     }
 
 
-def train_plot(result):
-    fig, axs = plt.subplots(1, 2, figsize=(12, 4))
-
-    axs[0].plot(result["train_loss"], label="train")
-    axs[0].plot(result["val_loss"], label="val")
-    axs[0].set_xlabel("epoch")
-    axs[0].set_ylabel("loss")
-    axs[0].legend()
-
-    axs[1].plot(result["train_metric"], label="train")
-    axs[1].plot(result["val_metric"], label="val")
-    axs[1].set_xlabel("epoch")
-    axs[1].set_ylabel("accuracy")
-    axs[1].legend()
-
-    plt.show()
-
-
 def save_training_artifacts(model, classes):
     idx_to_class = {idx: class_name for idx, class_name in enumerate(classes)}
     save_model_state(model)
@@ -136,8 +117,7 @@ def run_training():
 
 def main():
     argparse.ArgumentParser().parse_args()
-    _, result, *_ = run_training()
-    train_plot(result)
+    run_training()
 
 
 if __name__ == "__main__":
