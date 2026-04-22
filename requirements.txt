@@ -1,0 +1,12 @@
+numpy
+torch
+torchvision
+matplotlib
+seaborn
+scikit-learn
+Pillow
+kagglehub
+fastapi
+uvicorn
+pydantic
+
