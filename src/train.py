@@ -6,14 +6,11 @@ import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
 
-from src.dataset import build_basic_dataloaders, build_resnet_dataloaders
+from src.dataset import build_resnet_dataloaders
 from src.model import (
-    MyNN,
     build_resnet18,
     freeze_all_layers,
-    unfreeze_fc_only,
     unfreeze_last_block_and_fc,
-    weith_init,
 )
 from src.utils import IDX_TO_CLASS_PATH, MODEL_PATH, device, save_idx_to_class, save_model_state
 
@@ -115,39 +112,15 @@ def save_training_artifacts(model, classes):
     print(f"Saved idx_to_class mapping to {IDX_TO_CLASS_PATH}")
 
 
-def run_mynn():
-    num_epochs = 5
-
-    train_set, val_set, test_set, train_loader, val_loader, test_loader = build_basic_dataloaders()
-
-    model = MyNN(38, 3).to(device)
-    weith_init(model)
-    lossfunc = nn.CrossEntropyLoss()
-    opt = torch.optim.AdamW(model.parameters())
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, num_epochs)
-
-    result = train(num_epochs, model, opt, lossfunc, train_loader, val_loader, device, scheduler)
-    save_training_artifacts(model, val_set.classes)
-    return model, result, train_set, val_set, test_set, train_loader, val_loader, test_loader
-
-
 def run_resnet18():
     train_set, val_set, test_set, train_loader, val_loader, test_loader = build_resnet_dataloaders()
 
     model = build_resnet18(38).to(device)
 
     freeze_all_layers(model)
-    unfreeze_fc_only(model)
-
-    lossfunc = nn.CrossEntropyLoss()
-    opt = optim.AdamW(model.fc.parameters(), lr=1e-3)
-    scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=5)
-
-    result_stage1 = train(5, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
-
-    freeze_all_layers(model)
     unfreeze_last_block_and_fc(model)
 
+    lossfunc = nn.CrossEntropyLoss()
     opt = optim.AdamW(
         filter(lambda p: p.requires_grad, model.parameters()),
         lr=1e-4,
@@ -155,25 +128,19 @@ def run_resnet18():
     )
     scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=5)
 
-    result_stage2 = train(5, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
+    result = train(5, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
     save_training_artifacts(model, val_set.classes)
 
-    return model, result_stage1, result_stage2, train_set, val_set, test_set, train_loader, val_loader, test_loader
+    return model, result, train_set, val_set, test_set, train_loader, val_loader, test_loader
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--model", choices=["mynn", "resnet18"], default="resnet18")
-    args = parser.parse_args()
+    parser.add_argument("--model", choices=["resnet18"], default="resnet18")
+    parser.parse_args()
 
-    if args.model == "mynn":
-        _, result, *_ = run_mynn()
-        train_plot(result)
-        return
-
-    _, result_stage1, result_stage2, *_ = run_resnet18()
-    train_plot(result_stage1)
-    train_plot(result_stage2)
+    _, result, *_ = run_resnet18()
+    train_plot(result)
 
 
 if __name__ == "__main__":

@@ -47,26 +47,6 @@ def show_random_samples():
     plt.show()
 
 
-def build_basic_dataloaders():
-    train_set = datasets.ImageFolder(TRAIN_PATH, transform=tfms)
-    val_set = datasets.ImageFolder(VALID_PATH, transform=tfms)
-
-    n = len(train_set)
-    train_size = int(0.8 * n)
-    test_size = n - train_size
-    train_set, test_set = random_split(
-        train_set,
-        [train_size, test_size],
-        generator=torch.Generator().manual_seed(42),
-    )
-
-    train_loader = DataLoader(train_set, batch_size=64, shuffle=True, num_workers=2)
-    val_loader = DataLoader(val_set, batch_size=1024, shuffle=False, num_workers=2)
-    test_loader = DataLoader(test_set, batch_size=1024, shuffle=False, num_workers=2)
-
-    return train_set, val_set, test_set, train_loader, val_loader, test_loader
-
-
 def build_resnet_dataloaders():
     train_set = datasets.ImageFolder(TRAIN_PATH, transform=tfms_resnet_train)
     val_set = datasets.ImageFolder(VALID_PATH, transform=tfms_resnet)
