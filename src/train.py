@@ -11,7 +11,14 @@ from src.model import (
     freeze_all_layers,
     unfreeze_last_block_and_fc,
 )
-from src.utils import IDX_TO_CLASS_PATH, MODEL_PATH, device, save_idx_to_class, save_model_state
+from src.utils import (
+    IDX_TO_CLASS_PATH,
+    MODEL_PATH,
+    device,
+    get_dataset_classes,
+    save_idx_to_class,
+    save_model_state,
+)
 
 
 def train_epoch(model, opt, lossfunc, train_loader, current_device):
@@ -110,7 +117,7 @@ def run_resnet18():
     scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=1)
 
     result = train(1, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
-    save_training_artifacts(model, val_set.classes)
+    save_training_artifacts(model, get_dataset_classes(val_set))
 
     return model, result, train_set, val_set, test_set, train_loader, val_loader, test_loader
 

@@ -4,6 +4,7 @@ from pathlib import Path
 
 import kagglehub
 import torch
+from torch.utils.data import Subset
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -54,3 +55,10 @@ def format_class_name(class_name):
 def is_allowed_image(filename, content_type):
     suffix = Path(filename or "").suffix.lower()
     return suffix in ALLOWED_EXTENSIONS and content_type in ALLOWED_CONTENT_TYPES
+
+
+def get_dataset_classes(dataset):
+    current_dataset = dataset
+    while isinstance(current_dataset, Subset):
+        current_dataset = current_dataset.dataset
+    return current_dataset.classes
