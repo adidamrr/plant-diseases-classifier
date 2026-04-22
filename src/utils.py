@@ -35,6 +35,18 @@ def load_idx_to_class(path=IDX_TO_CLASS_PATH):
     return {int(idx): class_name for idx, class_name in raw_mapping.items()}
 
 
+def save_idx_to_class(idx_to_class, path=IDX_TO_CLASS_PATH):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    serializable_mapping = {str(idx): class_name for idx, class_name in idx_to_class.items()}
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(serializable_mapping, file, indent=2, ensure_ascii=True)
+
+
+def save_model_state(model, path=MODEL_PATH):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    torch.save(model.state_dict(), path)
+
+
 def format_class_name(class_name):
     return class_name.replace("___", ": ").replace("_", " ")
 

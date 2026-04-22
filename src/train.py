@@ -15,7 +15,7 @@ from src.model import (
     unfreeze_last_block_and_fc,
     weith_init,
 )
-from src.utils import device
+from src.utils import IDX_TO_CLASS_PATH, MODEL_PATH, device, save_idx_to_class, save_model_state
 
 
 def train_epoch(model, opt, lossfunc, train_loader, current_device):
@@ -107,6 +107,14 @@ def train_plot(result):
     plt.show()
 
 
+def save_training_artifacts(model, classes):
+    idx_to_class = {idx: class_name for idx, class_name in enumerate(classes)}
+    save_model_state(model)
+    save_idx_to_class(idx_to_class)
+    print(f"Saved model weights to {MODEL_PATH}")
+    print(f"Saved idx_to_class mapping to {IDX_TO_CLASS_PATH}")
+
+
 def run_mynn():
     num_epochs = 5
 
@@ -119,6 +127,7 @@ def run_mynn():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, num_epochs)
 
     result = train(num_epochs, model, opt, lossfunc, train_loader, val_loader, device, scheduler)
+    save_training_artifacts(model, val_set.classes)
     return model, result, train_set, val_set, test_set, train_loader, val_loader, test_loader
 
 
@@ -147,6 +156,7 @@ def run_resnet18():
     scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=5)
 
     result_stage2 = train(5, model, opt, lossfunc, train_loader, val_loader, device, scheduler=None)
+    save_training_artifacts(model, val_set.classes)
 
     return model, result_stage1, result_stage2, train_set, val_set, test_set, train_loader, val_loader, test_loader
 
@@ -168,4 +178,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
