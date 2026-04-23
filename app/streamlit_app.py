@@ -56,7 +56,7 @@ if uploaded_file is not None:
     left_col, right_col = st.columns([1, 1])
 
     with left_col:
-        st.image(image, caption="Загруженное изображение", width=360)
+        st.image(image, width=600)
 
     with right_col:
         try:
