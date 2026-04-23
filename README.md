@@ -1,13 +1,36 @@
 # Plant Disease Classifier
 
-Классификатор болезней растений на PyTorch с одной архитектурой: `ResNet18` и fine-tuning слоёв `layer4` и `fc`.
+Классификатор болезней растений на PyTorch с использованием transfer learning.
 
-Проект включает:
+Модель обучена на изображениях листьев растений и предсказывает заболевание (или его отсутствие) по фотографии.  
+В качестве финальной модели используется `ResNet18` с fine-tuning последних слоёв (`layer4` и `fc`).
+
+Проект реализует полный ML pipeline:
 
 - обучение модели;
 - сохранение артефактов в `artifacts/`;
 - FastAPI-сервис для инференса;
 - Streamlit-интерфейс для загрузки изображения и просмотра top-3 предсказаний.
+
+## Features
+
+- Классификация изображений (38 классов)
+- Top-3 предсказания с вероятностями
+- FastAPI API для инференса
+- Streamlit UI для удобного взаимодействия
+- Поддержка Docker
+
+## Models
+
+- **Baseline (эксперименты):** кастомная CNN  
+- **Финальная модель:** ResNet18 с fine-tuning (`layer4 + fc`)
+
+## Metrics
+
+- **Validation Accuracy:** 99.3%
+- **Macro F1-score:** ~0.99
+
+Модель показывает высокое качество благодаря использованию предобученной ResNet и дообучению последних слоёв под задачу классификации заболеваний растений.
 
 ## Интерфейс
 
@@ -15,9 +38,12 @@
 
 ## Данные
 
-Для обучения нужно скачать датасет с Kaggle:
+Для обучения используется датасет с Kaggle:
 
 [New Plant Diseases Dataset](https://www.kaggle.com/datasets/vipoooool/new-plant-diseases-dataset)
+
+- Количество классов: 38  
+- Задача: многоклассовая классификация изображений листьев растений  
 
 После скачивания используйте директории `train` и `valid` из датасета и передайте их через переменные окружения:
 
@@ -34,6 +60,15 @@ export VALID_PATH="/полный/путь/к/valid"
 - `artifacts/idx_to_class.json`
 
 Если эти файлы уже лежат в папке `artifacts/`, сервис и интерфейс можно запускать сразу без шага обучения.
+
+## Project Structure
+
+```text
+app/            # FastAPI API и Streamlit UI
+src/            # обучение, инференс, оценка
+artifacts/      # сохраненные модели и маппинг классов
+notebooks/      # эксперименты
+```
 
 ## Локальный запуск
 
@@ -108,7 +143,21 @@ curl -X POST "http://127.0.0.1:8000/predict" \
   -F "file=@/полный/путь/к/image.jpg"
 ```
 
-### 4. Запуск Streamlit UI
+## Example Response
+
+```json
+{
+  "predicted_class": "Tomato___Late_blight",
+  "confidence": 0.91,
+  "top_3": [
+    {"class_name": "Tomato___Late_blight", "probability": 0.91},
+    {"class_name": "Tomato___Septoria_leaf_spot", "probability": 0.06},
+    {"class_name": "Tomato___healthy", "probability": 0.02}
+  ]
+}
+```
+
+## 4. Запуск Streamlit UI
 
 ```bash
 streamlit run app/streamlit_app.py
@@ -137,7 +186,3 @@ python3 -m src.evaluate
 ```bash
 python3 -m src.predict --image /path/to/image.jpg
 ```
-
-## Примечание
-
-Для инференса проект ожидает, что `artifacts/best_model.pth` и `artifacts/idx_to_class.json` соответствуют друг другу и были получены из одной и той же обученной модели.
