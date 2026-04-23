@@ -1,0 +1,21 @@
+services:
+  api:
+    build: .
+    container_name: plant-disease-api
+    command: uvicorn app.api:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  streamlit:
+    build: .
+    container_name: plant-disease-streamlit
+    command: streamlit run app/streamlit_app.py --server.address 0.0.0.0 --server.port 8501
+    environment:
+      API_URL: http://api:8000/predict
+    depends_on:
+      - api
+    ports:
+      - "8501:8501"
+    restart: unless-stopped
+

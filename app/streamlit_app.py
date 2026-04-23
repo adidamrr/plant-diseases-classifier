@@ -1,4 +1,5 @@
 import io
+import os
 import sys
 from pathlib import Path
 
@@ -14,7 +15,7 @@ if str(PROJECT_ROOT) not in sys.path:
 from src.utils import format_class_name
 
 
-API_URL = "http://127.0.0.1:8000/predict"
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/predict")
 
 
 def build_bar_chart(predictions):
