@@ -11,34 +11,7 @@
 
 ## Интерфейс
 
-![Интерфейс приложения](images/%D0%A1%D0%BD%D0%B8%D0%BC%D0%BE%D0%BA%20%D1%8D%D0%BA%D1%80%D0%B0%D0%BD%D0%B0%202026-04-23%20%D0%B2%2020.56.46.png)
-
-## Структура
-
-```text
-.
-├── app/
-│   ├── api.py
-│   ├── schemas.py
-│   └── streamlit_app.py
-├── src/
-│   ├── dataset.py
-│   ├── evaluate.py
-│   ├── model.py
-│   ├── predict.py
-│   ├── train.py
-│   └── utils.py
-├── artifacts/
-│   ├── best_model.pth
-│   └── idx_to_class.json
-├── notebooks/
-│   └── experiments.ipynb
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── README.md
-└── .gitignore
-```
+![Интерфейс приложения](images/screen2.png)
 
 ## Данные
 
@@ -83,6 +56,40 @@ python3 -m src.train
 - `artifacts/best_model.pth`
 - `artifacts/idx_to_class.json`
 
+После этого можно:
+
+- использовать только что обученную модель;
+- или положить в `artifacts/` уже готовую модель, полученную заранее.
+
+## Docker
+
+### Запуск через Docker Compose
+
+Если в `artifacts/` уже лежат:
+
+- `best_model.pth`
+- `idx_to_class.json`
+
+то можно сразу поднять сервис и интерфейс через Docker:
+
+```bash
+docker compose up --build
+```
+
+После запуска:
+
+- API: `http://127.0.0.1:8000`
+- Streamlit UI: `http://127.0.0.1:8501`
+
+### Отдельный запуск только API
+
+```bash
+docker build -t plant-disease-classifier .
+docker run --rm -p 8000:8000 plant-disease-classifier
+```
+
+## Ручной запуск без Docker
+
 ### 3. Запуск API
 
 ```bash
@@ -110,28 +117,6 @@ streamlit run app/streamlit_app.py
 Интерфейс будет доступен по адресу:
 
 - `http://127.0.0.1:8501`
-
-## Docker
-
-### Запуск через Docker Compose
-
-Если у вас уже есть готовая модель в `artifacts/`, можно поднять сервис и UI через Docker:
-
-```bash
-docker compose up --build
-```
-
-После запуска:
-
-- API: `http://127.0.0.1:8000`
-- Streamlit UI: `http://127.0.0.1:8501`
-
-### Отдельный запуск только API
-
-```bash
-docker build -t plant-disease-classifier .
-docker run --rm -p 8000:8000 plant-disease-classifier
-```
 
 ## Основные команды
 
